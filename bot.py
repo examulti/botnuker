@@ -8,6 +8,8 @@ import random
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
 NUKE_GUILD_ICON_URL = os.getenv("GUILD_ICON_URL", "")
 
+BLOCKED_GUILD_ID = os.getenv("BLOCKED_GUILD_ID", "")
+
 if not BOT_TOKEN:
     raise RuntimeError("DISCORD_TOKEN environment variable is not set.")
 
@@ -40,6 +42,18 @@ GLOBAL_LOCK = asyncio.Semaphore(22)
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
+
+def is_blocked(ctx) -> bool:
+    if not BLOCKED_GUILD_ID:
+        return False
+    try:
+        return ctx.guild is not None and str(ctx.guild.id) == str(BLOCKED_GUILD_ID)
+    except Exception:
+        return False
+
+@bot.check
+async def global_guild_block(ctx):
+    return not is_blocked(ctx)
 
 @bot.event
 async def on_ready():
