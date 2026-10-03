@@ -10,6 +10,8 @@ NUKE_GUILD_ICON_URL = os.getenv("GUILD_ICON_URL", "")
 
 BLOCKED_GUILD_ID = os.getenv("BLOCKED_GUILD_ID", "")
 
+ALLOWED_IN_BLOCKED = {"help", "invite"}
+
 if not BOT_TOKEN:
     raise RuntimeError("DISCORD_TOKEN environment variable is not set.")
 
@@ -53,7 +55,9 @@ def is_blocked(ctx) -> bool:
 
 @bot.check
 async def global_guild_block(ctx):
-    return not is_blocked(ctx)
+    if not is_blocked(ctx):
+        return True
+    return ctx.command.name in ALLOWED_IN_BLOCKED
 
 @bot.event
 async def on_ready():
