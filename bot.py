@@ -159,7 +159,7 @@ async def help_cmd(ctx):
         "MEGA NUKE COMMANDS\n"
         "!help\n!ban / !kick\n!delch\n"
         "!hypercreate [name] [amount] / !hc\n"
-        "!spam [msg] [count]\n!spamall [msg] [per_channel]\n"
+        "!spam [msg] [count]\n!spamall [msg] [por_channel]\n"
         "!delroles\n!nukeall\n!setban / !setkick\n!invite",
     )
 
