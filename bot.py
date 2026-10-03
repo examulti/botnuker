@@ -153,7 +153,7 @@ async def invite_cmd(ctx):
     embed = discord.Embed(
         title="Invite botnuker",
         description="Haz clic en el enlace de abajo para anadir el bot a tu servidor.",
-        color=discord.Color.white(),
+        color=discord.Color(0xFFFFFF),
         url=invite_url,
     )
     embed.add_field(
